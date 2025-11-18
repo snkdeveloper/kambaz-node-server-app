@@ -6,7 +6,7 @@ import express from 'express';
 import cors from "cors";
 
 export default function Lab5(app) {
-    app.use(cors());
+  
     app.use(express.json());
  app.get("/lab5/welcome", (req, res) => {
   res.send("Welcome to Lab 5");
