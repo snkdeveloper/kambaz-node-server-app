@@ -1,9 +1,11 @@
 import CoursesDao from "./dao.js";
 import EnrollmentsDao from "../Enrollments/dao.js";
+import UsersDao from "../Users/dao.js";
 
 export default function CourseRoutes(app, db) {
   const dao = CoursesDao(db);
   const enrollmentsDao = EnrollmentsDao(db);
+  const usersDao = UsersDao();
 
   const findAllCourses = (req, res) => {
     const courses = dao.findAllCourses();
@@ -43,7 +45,21 @@ export default function CourseRoutes(app, db) {
     res.json(status);
   };
 
+  const findUsersForCourse = async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      const userIds = enrollmentsDao.findUsersForCourse(courseId);
+      // Map user IDs to user objects; handle both sync and async dao implementations
+      const userPromises = userIds.map((uid) => usersDao.findUserById(uid));
+      const users = await Promise.all(userPromises);
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
   app.get("/api/courses", findAllCourses);
+  app.get("/api/courses/:courseId/users", findUsersForCourse);
   app.get("/api/users/:userId/courses", findCoursesForEnrolledUser);
   app.post("/api/users/current/courses", createCourse);
   app.delete("/api/courses/:courseId", deleteCourse);

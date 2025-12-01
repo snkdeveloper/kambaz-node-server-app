@@ -20,8 +20,14 @@ export default function EnrollmentsDao(db) {
     );
   }
 
+  function findUsersForCourse(courseId) {
+    const { enrollments } = db;
+    return enrollments.filter((e) => e.course === courseId).map((e) => e.user);
+  }
+
   return {
     enrollUserInCourse,
     unenrollUserFromCourse,
+    findUsersForCourse,
   };
 }
