@@ -13,40 +13,38 @@ import CourseRoutes from "./Kambaz/Courses/routes.js";
 import EnrollmentRoutes from "./Kambaz/Enrollments/routes.js";
 import ModuleRoutes from "./Kambaz/Modules/routes.js";
 import AssignmentRoutes from "./Kambaz/Assignments/routes.js";
-const CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING || "mongodb://127.0.0.1:27017/kambaz";
+
+const CONNECTION_STRING =
+  process.env.DATABASE_CONNECTION_STRING ||
+  "mongodb://127.0.0.1:27017/kambaz";
+
 mongoose.connect(CONNECTION_STRING);
+
 const app = express();
 
-// Allow ANY origin (required for credentials)
+/* ------------------------ CORS (must be first) ------------------------ */
 app.use(cors({
-   origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
   credentials: true
 }));
+
+/* ------------------------ Session ------------------------ */
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    sameSite: "lax",
+    secure: false   // IMPORTANT for localhost
+  }
 };
-if (process.env.SERVER_ENV !== "development") {
-  sessionOptions.proxy = true;
-  sessionOptions.cookie = {
-    sameSite: "none",
-    secure: true,
-    domain: process.env.SERVER_URL,
-  };
-}
+
 app.use(session(sessionOptions));
 
-
+/* ------------------------ JSON Parser ------------------------ */
 app.use(express.json());
 
-app.use(session({
-  secret: "secret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { sameSite: "lax" }
-}));
-
+/* ------------------------ Routes ------------------------ */
 UserRoutes(app, db);
 CourseRoutes(app, db);
 EnrollmentRoutes(app, db);
@@ -55,4 +53,7 @@ AssignmentRoutes(app, db);
 Hello(app);
 Lab5(app);
 
-app.listen(process.env.PORT || 4000);
+/* ------------------------ Start Server ------------------------ */
+app.listen(process.env.PORT || 4000, () =>
+  console.log("Server running on port", process.env.PORT || 4000)
+);

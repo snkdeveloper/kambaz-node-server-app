@@ -1,45 +1,32 @@
 import { v4 as uuidv4 } from "uuid";
+import model from "./model.js";
 
 export default function AssignmentsDao(db) {
 
   // Find all assignments for a specific course
-  function findAssignmentsForCourse(courseId) {
-    console.log("🔍 DAO: Finding assignments for course:", courseId);
-    const filtered = db.assignments.filter((assignment) => assignment.course === courseId);
-    console.log("📊 DAO: Found", filtered.length, "assignments");
-    return filtered;
+  async function findAssignmentsForCourse(courseId) {
+    return model.find({ course: courseId });
   }
 
   // Find a single assignment by ID
-  function findAssignmentById(assignmentId) {
-    return db.assignments.find((assignment) => assignment._id === assignmentId);  // ✅ Use db.assignments
+  async function findAssignmentById(assignmentId) {
+    return model.findById(assignmentId);
   }
 
   // Create a new assignment for a course
-  function createAssignment(assignment) {
-    console.log("💾 Creating assignment in DAO:", assignment);
+  async function createAssignment(assignment) {
     const newAssignment = { ...assignment, _id: uuidv4() };
-    db.assignments = [...db.assignments, newAssignment];
-    console.log("✅ DAO: Assignment added. Total assignments:", db.assignments.length);
-    console.log("📋 All assignment IDs:", db.assignments.map(a => a._id));
-    return newAssignment;
+    return model.create(newAssignment);
   }
 
   // Update an existing assignment
-  function updateAssignment(assignmentId, assignmentUpdates) {
-    db.assignments = db.assignments.map((assignment) =>
-      assignment._id === assignmentId
-        ? { ...assignment, ...assignmentUpdates }
-        : assignment
-    );
-    return db.assignments.find((a) => a._id === assignmentId);
+  async function updateAssignment(assignmentId, assignmentUpdates) {
+    return model.updateOne({ _id: assignmentId }, { $set: assignmentUpdates });
   }
 
   // Delete an assignment
-  function deleteAssignment(assignmentId) {
-    db.assignments = db.assignments.filter(
-      (assignment) => assignment._id !== assignmentId
-    );
+  async function deleteAssignment(assignmentId) {
+    return model.deleteOne({ _id: assignmentId });
   }
 
   return {
