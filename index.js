@@ -35,9 +35,18 @@ const sessionOptions = {
   saveUninitialized: false,
   cookie: {
     sameSite: "lax",
-    secure: false   // IMPORTANT for localhost
+    secure: false // localhost/dev
   }
 };
+
+// Tighten cookies for production (Render + Vercel are cross-site)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+  sessionOptions.cookie = {
+    sameSite: "none",
+    secure: true
+  };
+}
 
 app.use(session(sessionOptions));
 

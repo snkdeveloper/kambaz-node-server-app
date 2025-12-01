@@ -27,11 +27,22 @@ export default function CourseRoutes(app, db) {
   };
 
   const createCourse = async (req, res) => {
-     const newCourse = await dao.createCourse(req.body);
-    const currentUser = req.session["currentUser"];
-    enrollmentsDao.enrollUserInCourse(currentUser._id, newCourse._id);
-    res.json(newCourse);
-
+    try {
+      const currentUser = req.session["currentUser"];
+      if (!currentUser) {
+        return res.sendStatus(401);
+      }
+      const { name } = req.body || {};
+      if (!name || typeof name !== "string") {
+        return res.status(400).json({ message: "Course name is required" });
+      }
+      const newCourse = await dao.createCourse(req.body);
+      await enrollmentsDao.enrollUserInCourse(currentUser._id, newCourse._id);
+      return res.json(newCourse);
+    } catch (err) {
+      console.error("Error creating course:", err);
+      return res.sendStatus(500);
+    }
   };
 
   const deleteCourse = async (req, res) => {
